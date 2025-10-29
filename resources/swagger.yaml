@@ -1,0 +1,305 @@
+openapi: 3.0.0
+info:
+  title: API do Salão de Beleza
+  description: API REST para agendamento de serviços em um salão de beleza (Português Brasileiro)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        email:
+          type: string
+        papel:
+          type: string
+          enum: [cliente, cabeleireiro]
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    Servico:
+      type: object
+      properties:
+        id:
+          type: string
+        nome:
+          type: string
+        duracao:
+          type: integer
+          description: duração em minutos
+        preco:
+          type: number
+        categoria:
+          type: string
+        descricao:
+          type: string
+    Compromisso:
+      type: object
+      properties:
+        id:
+          type: string
+        clienteId:
+          type: string
+        cabeleireiroId:
+          type: string
+        servicoId:
+          type: string
+        dataHora:
+          type: string
+          format: date-time
+        status:
+          type: string
+    HorarioDisponivel:
+      type: object
+      properties:
+        id:
+          type: string
+        cabeleireiroId:
+          type: string
+        dataHora:
+          type: string
+          format: date-time
+    Error:
+      type: object
+      properties:
+        erro:
+          type: string
+paths:
+  /auth/cadastrar:
+    post:
+      summary: Cadastrar novo usuário (cliente ou cabeleireiro)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome: { type: string }
+                email: { type: string }
+                senha: { type: string }
+                papel: { type: string, enum: [cliente, cabeleireiro] }
+      responses:
+        '201':
+          description: Usuário criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usuario'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      summary: Login e emissão de token JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: { type: string }
+                senha: { type: string }
+      responses:
+        '200':
+          description: Token JWT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /servicos:
+    get:
+      summary: Listar serviços disponíveis
+      responses:
+        '200':
+          description: Lista de serviços
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Servico'
+    post:
+      summary: Criar novo serviço (apenas cabeleireiro)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome: { type: string }
+                duracao: { type: integer }
+                preco: { type: number }
+                categoria: { type: string }
+                descricao: { type: string }
+      responses:
+        '201':
+          description: Serviço criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Servico'
+        '401':
+          description: Não autenticado
+        '403':
+          description: Acesso negado
+  /servicos/{id}:
+    get:
+      summary: Detalhes de um serviço
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Serviço
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Servico'
+        '404':
+          description: Não encontrado
+    put:
+      summary: Atualizar serviço (cabeleireiro)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome: { type: string }
+                duracao: { type: integer }
+                preco: { type: number }
+                categoria: { type: string }
+                descricao: { type: string }
+      responses:
+        '200':
+          description: Serviço atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Servico'
+        '404':
+          description: Não encontrado
+    delete:
+      summary: Remover serviço (cabeleireiro)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: Removido
+        '404':
+          description: Não encontrado
+  /compromissos:
+    post:
+      summary: Criar novo agendamento (cliente precisa estar logado)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cabeleireiroId: { type: string }
+                servicoId: { type: string }
+                dataHora: { type: string, format: date-time }
+      responses:
+        '201':
+          description: Agendamento criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Compromisso'
+        '400':
+          description: Dados inválidos / horário indisponível
+    get:
+      summary: Listar compromissos (retorna os do usuário autenticado)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de compromissos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Compromisso'
+  /cabeleireiros/horarios:
+    post:
+      summary: Cabeleireiro registra horários disponíveis
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dataHora: { type: string, format: date-time }
+      responses:
+        '201':
+          description: Horário registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HorarioDisponivel'
+        '403':
+          description: Acesso negado
+  /cabeleireiros/horarios/{cabeleireiroId}:
+    get:
+      summary: Lista horários disponíveis de um cabeleireiro
+      parameters:
+        - in: path
+          name: cabeleireiroId
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de horários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/HorarioDisponivel'

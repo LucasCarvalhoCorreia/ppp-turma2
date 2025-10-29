@@ -1,0 +1,1 @@
+Controle de controllers: authController, servicosController, compromissosController, cabeleireirosController
