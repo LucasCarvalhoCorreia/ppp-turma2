@@ -185,3 +185,28 @@ Modelos principais (resumo):
 	- servicoId: string
 	- dataHora: string (ISO 8601)
 	- status: string (e.g., 'agendado')
+
+## 🧪 Testes
+
+Integração (automatizados):
+
+- Execute a suíte completa de testes (Jest + Supertest):
+
+```bash
+npm test
+```
+
+- Os testes de integração estão em `tests/integration/*` e cobrem autenticação, serviços, agendamento, autorização e casos de erro.
+
+Performance (teste de carga):
+
+- Script de exemplo usando `autocannon` em `scripts/perf/run_perf.js`.
+- Antes de executar, inicie a aplicação (`npm start`) e então rode:
+
+```bash
+# testa /servicos por 10 segundos com 50 conexões (padrão)
+node scripts/perf/run_perf.js http://localhost:3000
+```
+
+- Para ajustar conexões/duração edite `scripts/perf/run_perf.js`.
+

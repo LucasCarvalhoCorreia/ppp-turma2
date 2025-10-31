@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "perf:k6": "k6 run tests/perf/k6/default.k6.js"
   },
   "keywords": [],
   "author": "",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "jest": "^29.0.0",
+    "autocannon": "^7.10.0",
     "supertest": "^7.1.4"
   }
 }
