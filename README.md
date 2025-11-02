@@ -198,15 +198,44 @@ npm test
 
 - Os testes de integração estão em `tests/integration/*` e cobrem autenticação, serviços, agendamento, autorização e casos de erro.
 
-Performance (teste de carga):
+Performance (teste de carga) — k6
 
-- Script de exemplo usando `autocannon` em `scripts/perf/run_perf.js`.
-- Antes de executar, inicie a aplicação (`npm start`) e então rode:
+Adicionamos um conjunto de scripts de carga com k6 em `tests/perf/k6/`, agrupados por feature. Cada script contém vários cenários (um por tipo de requisição) para simular cargas representativas:
+
+- `tests/perf/k6/auth.k6.js` — cenários para `POST /auth/cadastrar` e `POST /auth/login`
+- `tests/perf/k6/servicos.k6.js` — cenários para `GET /servicos`, `POST /servicos`, `GET /servicos/{id}`, `PUT /servicos/{id}`, `DELETE /servicos/{id}`
+- `tests/perf/k6/horarios.k6.js` — cenários para `POST /cabeleireiros/horarios` e `GET /cabeleireiros/horarios/{cabeleireiroId}`
+- `tests/perf/k6/compromissos.k6.js` — cenários para `POST /compromissos` e `GET /compromissos`
+
+Requisitos
+- Ter o binário `k6` instalado na máquina. Veja https://k6.io/docs/getting-started/installation
+
+Execução local (exemplos)
 
 ```bash
-# testa /servicos por 10 segundos com 50 conexões (padrão)
-node scripts/perf/run_perf.js http://localhost:3000
+# executar o script de auth (cada cenário tem VUs separados configuráveis via env)
+BASE_URL=http://localhost:3000 VUS_LOGIN=10 VUS_CAD=5 DURATION=30s k6 run tests/perf/k6/auth.k6.js
+
+# executar o script de serviços com VUs por cenário
+BASE_URL=http://localhost:3000 VUS_LIST=10 VUS_CREATE=3 VUS_GET=5 VUS_UPDATE=2 VUS_DELETE=1 DURATION=30s k6 run tests/perf/k6/servicos.k6.js
+
+# executar todos sequencialmente (exemplo simples)
+BASE_URL=http://localhost:3000 DURATION=20s k6 run tests/perf/k6/auth.k6.js && \
+	k6 run tests/perf/k6/servicos.k6.js && \
+	k6 run tests/perf/k6/horarios.k6.js && \
+	k6 run tests/perf/k6/compromissos.k6.js
 ```
 
-- Para ajustar conexões/duração edite `scripts/perf/run_perf.js`.
+Variáveis de ambiente úteis
+- `BASE_URL`: URL base da API (padrão: `http://localhost:3000`)
+- `DURATION`: duração padrão para cada cenário (ex: `30s`, `1m`)
+- `auth.k6.js`: `VUS_LOGIN`, `VUS_CAD`
+- `servicos.k6.js`: `VUS_LIST`, `VUS_CREATE`, `VUS_GET`, `VUS_UPDATE`, `VUS_DELETE`
+- `horarios.k6.js`: `VUS_CREATE`, `VUS_LIST`, `CAB_EMAIL`, `CAB_SENHA`
+- `compromissos.k6.js`: `VUS_CREATE`, `VUS_LIST`, `CLIENT_EMAIL`, `CLIENT_SENHA`
+
+Notas
+- Os scripts usam por padrão os usuários seededs do DB em memória (por ex.: `joana@cliente.com` e `cabeleireiro@salon.com`, senha `senha123`). Ajuste as variáveis de ambiente para apontar para outros usuários se necessário.
+- Alguns cenários toleram respostas 401/404/400 como esperadas (ex.: concorrência, autorização). Os checks do k6 indicam falhas reais quando apropriado — se preferir, podemos tornar os checks mais estritos.
+- Para gerar relatórios mais detalhados (JSON/CSV) ou integrar ao Grafana, rode k6 com output apropriado e exporte os resultados.
 
