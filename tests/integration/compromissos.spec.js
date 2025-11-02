@@ -5,7 +5,7 @@ const db = require('../../src/models/db');
 describe('Compromissos integration', () => {
   beforeEach(() => db.reset());
 
-  test('fluxo: cabeleireiro registra horário; cliente agenda; cliente vê compromisso', async () => {
+  test('CT-Comp-01 - fluxo: cabeleireiro registra horário; cliente agenda; cliente vê compromisso', async () => {
     // criar cabeleireiro e logar
     const cabe = { nome: 'Cabele', email: `cab${Date.now()}@ex.com`, senha: 'senha', papel: 'cabeleireiro' };
     await request(app).post('/auth/cadastrar').send(cabe);

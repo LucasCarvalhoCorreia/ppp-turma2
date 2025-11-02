@@ -8,7 +8,7 @@ describe('Auth integration', () => {
     db.reset();
   });
 
-  test('POST /auth/cadastrar -> cria usuário e POST /auth/login retorna token', async () => {
+  test('CT-Auth-01 / CT-Auth-03 - POST /auth/cadastrar cria usuário e POST /auth/login retorna token', async () => {
     const email = `test-${Date.now()}@example.com`;
     const usuario = { nome: 'Teste', email, senha: 'senha123', papel: 'cliente' };
 

@@ -5,7 +5,7 @@ const db = require('../../src/models/db');
 describe('Serviços - PUT/DELETE e autorização', () => {
   beforeEach(() => db.reset());
 
-  test('cabeleireiro consegue atualizar e remover serviço', async () => {
+  test('CT-Serv-05 / CT-Serv-06 - cabeleireiro consegue atualizar e remover serviço', async () => {
     const cabe = { nome: 'Cabele', email: `cab${Date.now()}@ex.com`, senha: 'senha', papel: 'cabeleireiro' };
     await request(app).post('/auth/cadastrar').send(cabe);
     const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha' });
@@ -26,7 +26,7 @@ describe('Serviços - PUT/DELETE e autorização', () => {
     expect(del.status).toBe(204);
   });
 
-  test('cliente não pode criar/editar/remover serviço (403)', async () => {
+  test('CT-Serv-04 - cliente não pode criar/editar/remover serviço (403)', async () => {
     const cli = { nome: 'Cli', email: `cli${Date.now()}@ex.com`, senha: 'senha', papel: 'cliente' };
     await request(app).post('/auth/cadastrar').send(cli);
     const login = await request(app).post('/auth/login').send({ email: cli.email, senha: 'senha' });
