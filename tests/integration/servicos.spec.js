@@ -20,4 +20,10 @@ describe('Serviços integration', () => {
     const res = await request(app).post('/servicos').send({ nome: 'X', duracao: 10, preco: 10, categoria: 'teste' });
     expect(res.status).toBe(401);
   });
+
+  test('CT-Serv-01 - GET /servicos retorna array e 200', async () => {
+    const res = await request(app).get('/servicos');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
 });

@@ -11,7 +11,7 @@ describe('Compromissos - casos de erro', () => {
     expect(res.status).toBe(401);
   });
 
-  test('CT-Comp-04 - agendar com servico inválido retorna 400', async () => {
+    test('CT-Comp-04 - agendar com servico inválido retorna 400', async () => {
     // criar cliente e logar
     const cli = { nome: 'Cli', email: `cli${Date.now()}@ex.com`, senha: 'senha', papel: 'cliente' };
     await request(app).post('/auth/cadastrar').send(cli);
@@ -25,6 +25,22 @@ describe('Compromissos - casos de erro', () => {
 
     const res = await request(app).post('/compromissos').set('Authorization', `Bearer ${token}`).send({ cabeleireiroId: cabe.id, servicoId: 'invalido', dataHora });
     expect(res.status).toBe(400);
+  });
+
+  test('CT-Comp-03 - agendar horário indisponível retorna 400 (caso isolado)', async () => {
+    // criar cliente e logar
+    const cli = { nome: 'CliZ', email: `cliz${Date.now()}@ex.com`, senha: 'senha', papel: 'cliente' };
+    await request(app).post('/auth/cadastrar').send(cli);
+    const login = await request(app).post('/auth/login').send({ email: cli.email, senha: 'senha' });
+    const token = login.body.token;
+
+    const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
+    const servicoId = db.servicos[0].id;
+    const dataHora = '2040-01-01T00:00:00Z'; // data não registrada
+
+    const res = await request(app).post('/compromissos').set('Authorization', `Bearer ${token}`).send({ cabeleireiroId: cabe.id, servicoId, dataHora });
+    expect(res.status).toBe(400);
+    expect(res.body).toHaveProperty('erro');
   });
 
   test('CT-Comp-05 - agendar mesmo horário duas vezes (segundo falha)', async () => {

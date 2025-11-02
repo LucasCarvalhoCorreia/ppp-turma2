@@ -26,6 +26,23 @@ describe('Serviços - PUT/DELETE e autorização', () => {
     expect(del.status).toBe(204);
   });
 
+  test('CT-Serv-06 - remover serviço (DELETE) retorna 204 e 404 subsequente', async () => {
+    const cabe = { nome: 'Cabele2', email: `cab2${Date.now()}@ex.com`, senha: 'senha', papel: 'cabeleireiro' };
+    await request(app).post('/auth/cadastrar').send(cabe);
+    const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha' });
+    const token = login.body.token;
+
+    const res = await request(app).post('/servicos').set('Authorization', `Bearer ${token}`).send({ nome: 'RemoverTeste', duracao: 20, preco: 30, categoria: 'cabelo' });
+    expect(res.status).toBe(201);
+    const id = res.body.id;
+
+    const del = await request(app).delete(`/servicos/${id}`).set('Authorization', `Bearer ${token}`);
+    expect(del.status).toBe(204);
+
+    const del2 = await request(app).delete(`/servicos/${id}`).set('Authorization', `Bearer ${token}`);
+    expect(del2.status).toBe(404);
+  });
+
   test('CT-Serv-04 - cliente não pode criar/editar/remover serviço (403)', async () => {
     const cli = { nome: 'Cli', email: `cli${Date.now()}@ex.com`, senha: 'senha', papel: 'cliente' };
     await request(app).post('/auth/cadastrar').send(cli);
