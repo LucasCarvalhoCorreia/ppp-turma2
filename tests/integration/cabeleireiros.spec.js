@@ -5,36 +5,58 @@ const db = require('../../src/models/db');
 describe('Cabeleireiros integration', () => {
   beforeEach(() => db.reset());
 
-  test('CT-Hor-02 - listar horários de um cabeleireiro', async () => {
-    const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
-    let r = await request(app).get(`/cabeleireiros/horarios/${cabe.id}`);
-    expect(r.status).toBe(200);
-    expect(Array.isArray(r.body)).toBe(true);
+  describe('Caminho feliz', () => {
+    test('CT-Hor-01 - registrar horário disponível (cabeleireiro) retorna 201 e adiciona ao DB', async () => {
+      const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
+      const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha123' });
+      const token = login.body.token;
+      const dataHora = '2025-12-02T14:00:00Z';
 
-    const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha123' });
-    const token = login.body.token;
-    const dataHora = '2025-12-01T09:00:00Z';
-    const reg = await request(app).post('/cabeleireiros/horarios').set('Authorization', `Bearer ${token}`).send({ dataHora });
-    expect(reg.status).toBe(201);
+      const res = await request(app).post('/cabeleireiros/horarios').set('Authorization', `Bearer ${token}`).send({ dataHora });
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('id');
+      expect(res.body).toHaveProperty('dataHora', dataHora);
 
-    r = await request(app).get(`/cabeleireiros/horarios/${cabe.id}`);
-    expect(r.status).toBe(200);
-    expect(r.body.some(h => h.dataHora === dataHora)).toBe(true);
+      // verifica que está no DB
+      const lista = db.horariosDisponiveis.filter(h => h.cabeleireiroId === cabe.id && h.dataHora === dataHora);
+      expect(lista.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('CT-Hor-02 - listar horários de um cabeleireiro', async () => {
+      const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
+      let r = await request(app).get(`/cabeleireiros/horarios/${cabe.id}`);
+      expect(r.status).toBe(200);
+      expect(Array.isArray(r.body)).toBe(true);
+
+      const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha123' });
+      const token = login.body.token;
+      const dataHora = '2025-12-01T09:00:00Z';
+      const reg = await request(app).post('/cabeleireiros/horarios').set('Authorization', `Bearer ${token}`).send({ dataHora });
+      expect(reg.status).toBe(201);
+
+      r = await request(app).get(`/cabeleireiros/horarios/${cabe.id}`);
+      expect(r.status).toBe(200);
+      expect(r.body.some(h => h.dataHora === dataHora)).toBe(true);
+    });
   });
 
-  test('CT-Hor-01 - registrar horário disponível (cabeleireiro) retorna 201 e adiciona ao DB', async () => {
-    const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
-    const login = await request(app).post('/auth/login').send({ email: cabe.email, senha: 'senha123' });
-    const token = login.body.token;
-    const dataHora = '2025-12-02T14:00:00Z';
+  describe('Caminho infeliz', () => {
+    test('CT-Hor-03 - cliente não pode registrar horário (403)', async () => {
+      // criar cliente e logar
+      const cli = { nome: 'ClienteErr', email: `clierr${Date.now()}@ex.com`, senha: 'senha', papel: 'cliente' };
+      await request(app).post('/auth/cadastrar').send(cli);
+      const login = await request(app).post('/auth/login').send({ email: cli.email, senha: 'senha' });
+      const token = login.body.token;
 
-    const res = await request(app).post('/cabeleireiros/horarios').set('Authorization', `Bearer ${token}`).send({ dataHora });
-    expect(res.status).toBe(201);
-    expect(res.body).toHaveProperty('id');
-    expect(res.body).toHaveProperty('dataHora', dataHora);
+      const dataHora = '2025-12-10T10:00:00Z';
+      const res = await request(app).post('/cabeleireiros/horarios').set('Authorization', `Bearer ${token}`).send({ dataHora });
+      expect(res.status).toBe(403);
+      expect(res.body).toHaveProperty('erro');
 
-    // verifica que está no DB
-    const lista = db.horariosDisponiveis.filter(h => h.cabeleireiroId === cabe.id && h.dataHora === dataHora);
-    expect(lista.length).toBeGreaterThanOrEqual(1);
+      // garante que não foi adicionado ao DB
+      const cabe = db.usuarios.find(u => u.papel === 'cabeleireiro');
+      const found = db.horariosDisponiveis.find(h => h.cabeleireiroId === (cabe && cabe.id) && h.dataHora === dataHora);
+      expect(found).toBeUndefined();
+    });
   });
 });
