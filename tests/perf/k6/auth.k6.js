@@ -1,3 +1,10 @@
+// Testes de performance dos endpoints de `auth`
+// Endpoints testados por este script:
+// - POST /auth/cadastrar
+// - POST /auth/login
+//
+// Variáveis de ambiente usadas (opcionais):
+// BASE_URL, VUS_CAD, VUS_LOGIN, DURATION
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -21,6 +28,7 @@ export const options = {
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
 
 export function cadastrar() {
+  // Método: POST /auth/cadastrar
   const random = Math.floor(Math.random() * 1000000);
   const payload = JSON.stringify({
     nome: `CTUser ${random}`,
@@ -34,6 +42,7 @@ export function cadastrar() {
 }
 
 export function login() {
+  // Método: POST /auth/login
   const email = __ENV.LOGIN_EMAIL || 'joana@cliente.com';
   const senha = __ENV.LOGIN_SENHA || 'senha123';
   const res = http.post(`${BASE_URL}/auth/login`, JSON.stringify({ email, senha }), { headers: { 'Content-Type': 'application/json' } });

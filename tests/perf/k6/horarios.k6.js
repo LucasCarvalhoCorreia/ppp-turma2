@@ -1,3 +1,10 @@
+// Testes de performance dos endpoints de `cabeleireiros/horarios`
+// Endpoints testados por este script:
+// - POST /cabeleireiros/horarios
+// - GET  /cabeleireiros/horarios/{cabeleireiroId}
+//
+// Variáveis de ambiente usadas (opcionais):
+// BASE_URL, CAB_EMAIL, CAB_SENHA, VUS_CREATE, VUS_LIST, DURATION
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -31,6 +38,7 @@ function getToken() {
 }
 
 export function create() {
+  // Método: POST /cabeleireiros/horarios
   const token = getToken();
   const payload = JSON.stringify({
     cabeleireiroId: 2,
@@ -44,6 +52,7 @@ export function create() {
 }
 
 export function list() {
+  // Método: GET /cabeleireiros/horarios/{cabeleireiroId}
   const res = http.get(`${BASE_URL}/cabeleireiros/horarios/2`);
   check(res, { 'horarios list 200 or 404': (r) => r.status === 200 || r.status === 404 });
   sleep(1);

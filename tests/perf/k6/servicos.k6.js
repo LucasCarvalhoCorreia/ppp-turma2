@@ -1,3 +1,13 @@
+// Testes de performance dos endpoints de `servicos`
+// Endpoints testados por este script:
+// - GET    /servicos
+// - POST   /servicos
+// - GET    /servicos/{id}
+// - PUT    /servicos/{id}
+// - DELETE /servicos/{id}
+//
+// Variáveis de ambiente usadas (opcionais):
+// BASE_URL, VUS_LIST, VUS_CREATE, VUS_GET, VUS_UPDATE, VUS_DELETE, DURATION
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -53,12 +63,14 @@ function getAuthToken() {
 }
 
 export function list() {
+  // Método: GET /servicos
   const res = http.get(`${BASE_URL}/servicos`);
   check(res, { 'list 200': (r) => r.status === 200 });
   sleep(1);
 }
 
 export function create() {
+  // Método: POST /servicos
   const token = getAuthToken();
   const payload = JSON.stringify({ nome: `Corte ${Math.floor(Math.random()*10000)}`, duracaoMinutos: 30, preco: 50 });
   const headers = { 'Content-Type': 'application/json' };
@@ -69,13 +81,14 @@ export function create() {
 }
 
 export function getById() {
-  // attempt to get id=1 as a simple heuristic
+  // Método: GET /servicos/{id} (tenta id=1 como heurística)
   const res = http.get(`${BASE_URL}/servicos/1`);
   check(res, { 'getById 200 or 404': (r) => r.status === 200 || r.status === 404 });
   sleep(1);
 }
 
 export function update() {
+  // Método: PUT /servicos/{id}
   const token = getAuthToken();
   const payload = JSON.stringify({ nome: `Corte Editado ${Math.floor(Math.random()*10000)}`, duracaoMinutos: 45, preco: 70 });
   const headers = { 'Content-Type': 'application/json' };
@@ -86,6 +99,7 @@ export function update() {
 }
 
 export function remove() {
+  // Método: DELETE /servicos/{id}
   const token = getAuthToken();
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;

@@ -1,3 +1,10 @@
+// Testes de performance dos endpoints de `compromissos`
+// Endpoints testados por este script:
+// - POST /compromissos
+// - GET  /compromissos
+//
+// Variáveis de ambiente usadas (opcionais):
+// BASE_URL, CLIENT_EMAIL, CLIENT_SENHA, VUS_CREATE, VUS_LIST, DURATION
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
@@ -31,6 +38,7 @@ function getToken() {
 }
 
 export function create() {
+  // Método: POST /compromissos
   const token = getToken();
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -44,6 +52,7 @@ export function create() {
 }
 
 export function list() {
+  // Método: GET /compromissos
   const token = getToken();
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
