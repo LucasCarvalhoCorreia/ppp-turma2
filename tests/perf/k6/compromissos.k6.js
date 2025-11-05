@@ -10,15 +10,15 @@ import { check, sleep } from 'k6';
 
 export const options = {
   scenarios: {
-    create: {
+    criar: {
       executor: 'constant-vus',
-      exec: 'create',
+      exec: 'criar',
       vus: __ENV.VUS_CREATE ? parseInt(__ENV.VUS_CREATE) : 5,
       duration: __ENV.DURATION || '20s',
     },
-    list: {
+    listar: {
       executor: 'constant-vus',
-      exec: 'list',
+      exec: 'listar',
       vus: __ENV.VUS_LIST ? parseInt(__ENV.VUS_LIST) : 10,
       duration: __ENV.DURATION || '20s',
     },
@@ -37,26 +37,82 @@ function getToken() {
   return null;
 }
 
-export function create() {
-  // Método: POST /compromissos
-  const token = getToken();
-  const headers = { 'Content-Type': 'application/json' };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
-  const payload = JSON.stringify({
-    servicoId: 1,
-    horarioId: 1,
-  });
-  const res = http.post(`${BASE_URL}/compromissos`, payload, { headers });
-  check(res, { 'compromissos create 201 or 401 or 400': (r) => [201, 401, 400].includes(r.status) });
+export function criar() {
+  // Fluxo "happy path" completo:
+  // 1) Cabeleireiro novo -> login -> registra horário
+  // 2) Cliente novo -> login
+  // 3) Busca um serviço válido
+  // 4) Cliente agenda com { cabeleireiroId, servicoId, dataHora }
+
+  const headersJson = { headers: { 'Content-Type': 'application/json' } };
+
+  const rnd = Math.floor(Math.random() * 1e9);
+  const cabEmail = `k6-cab-${rnd}@ex.com`;
+  const cliEmail = `k6-cli-${rnd}@ex.com`;
+  const senha = 'senha123';
+  const dataHora = new Date(Date.now() + 3600 * 1000).toISOString(); // +1h
+
+  // 1) Cabeleireiro: cadastrar e logar
+  const cabCad = http.post(
+    `${BASE_URL}/auth/cadastrar`,
+    JSON.stringify({ nome: 'K6 Cab', email: cabEmail, senha, papel: 'cabeleireiro' }),
+    headersJson
+  );
+  const cabId = cabCad.status === 201 ? cabCad.json('id') : null;
+
+  const cabLogin = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: cabEmail, senha }),
+    headersJson
+  );
+  const tokenCab = cabLogin.status === 200 ? cabLogin.json('token') : null;
+
+  // Registrar horário com token do cabeleireiro
+  const regHorario = http.post(
+    `${BASE_URL}/cabeleireiros/horarios`,
+    JSON.stringify({ dataHora }),
+    { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenCab}` } }
+  );
+
+  // 2) Cliente: cadastrar e logar
+  const cliCad = http.post(
+    `${BASE_URL}/auth/cadastrar`,
+    JSON.stringify({ nome: 'K6 Cli', email: cliEmail, senha, papel: 'cliente' }),
+    headersJson
+  );
+  const cliLogin = http.post(
+    `${BASE_URL}/auth/login`,
+    JSON.stringify({ email: cliEmail, senha }),
+    headersJson
+  );
+  const tokenCli = cliLogin.status === 200 ? cliLogin.json('token') : null;
+
+  // 3) Descobrir um serviço válido
+  const servList = http.get(`${BASE_URL}/servicos`);
+  let servicoId = null;
+  if (servList.status === 200) {
+    try { servicoId = servList.json()[0]?.id || null; } catch (e) { servicoId = null; }
+  }
+
+  // 4) Cliente agenda compromisso
+  const res = http.post(
+    `${BASE_URL}/compromissos`,
+    JSON.stringify({ cabeleireiroId: cabId, servicoId, dataHora }),
+    { headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenCli}` } }
+  );
+
+  // cenário feliz: deve retornar apenas 201
+  check(res, { 'compromissos criar 201': (r) => r.status === 201 });
   sleep(1);
 }
 
-export function list() {
+export function listar() {
   // Método: GET /compromissos
   const token = getToken();
   const headers = {};
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = http.get(`${BASE_URL}/compromissos`, { headers });
-  check(res, { 'compromissos list 200 or 401': (r) => [200, 401].includes(r.status) });
+  // cenário feliz: deve retornar apenas 200
+  check(res, { 'compromissos listar 200': (r) => r.status === 200 });
   sleep(1);
 }

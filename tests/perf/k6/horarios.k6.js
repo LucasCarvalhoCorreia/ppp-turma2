@@ -7,18 +7,19 @@
 // BASE_URL, CAB_EMAIL, CAB_SENHA, VUS_CREATE, VUS_LIST, DURATION
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import encoding from 'k6/encoding';
 
 export const options = {
   scenarios: {
-    create: {
+    criar: {
       executor: 'constant-vus',
-      exec: 'create',
+      exec: 'criar',
       vus: __ENV.VUS_CREATE ? parseInt(__ENV.VUS_CREATE) : 3,
       duration: __ENV.DURATION || '20s',
     },
-    list: {
+    listar: {
       executor: 'constant-vus',
-      exec: 'list',
+      exec: 'listar',
       vus: __ENV.VUS_LIST ? parseInt(__ENV.VUS_LIST) : 5,
       duration: __ENV.DURATION || '20s',
     },
@@ -26,7 +27,8 @@ export const options = {
 };
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:3000';
-const CABELEIREIRO_EMAIL = __ENV.CAB_EMAIL || 'cabeleireiro@salon.com';
+// usa usuário seed por padrão para garantir caminho feliz
+const CABELEIREIRO_EMAIL = __ENV.CAB_EMAIL || 'carlos@salon.com';
 const CABELEIREIRO_SENHA = __ENV.CAB_SENHA || 'senha123';
 
 function getToken() {
@@ -37,23 +39,35 @@ function getToken() {
   return null;
 }
 
-export function create() {
+export function criar() {
   // Método: POST /cabeleireiros/horarios
   const token = getToken();
   const payload = JSON.stringify({
-    cabeleireiroId: 2,
+    // o serviço usa o id do usuário do token; não precisa enviar cabeleireiroId
     dataHora: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
   });
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = http.post(`${BASE_URL}/cabeleireiros/horarios`, payload, { headers });
-  check(res, { 'horarios create 201 or 401': (r) => r.status === 201 || r.status === 401 });
+  // cenário feliz: deve retornar apenas 201
+  check(res, { 'horarios criar 201': (r) => r.status === 201 });
   sleep(1);
 }
 
-export function list() {
+export function listar() {
   // Método: GET /cabeleireiros/horarios/{cabeleireiroId}
-  const res = http.get(`${BASE_URL}/cabeleireiros/horarios/2`);
-  check(res, { 'horarios list 200 or 404': (r) => r.status === 200 || r.status === 404 });
+  // obter token e extrair id do cabeleireiro a partir do JWT
+  const token = getToken();
+  let cabeleireiroId = 'unknown';
+  if (token) {
+    try {
+      const payload = token.split('.')[1];
+      const json = JSON.parse(encoding.b64decode(payload, 'url', 's'));
+      cabeleireiroId = json.id || cabeleireiroId;
+    } catch (e) { /* noop */ }
+  }
+  const res = http.get(`${BASE_URL}/cabeleireiros/horarios/${cabeleireiroId}`);
+  // cenário feliz: deve retornar apenas 200
+  check(res, { 'horarios listar 200': (r) => r.status === 200 });
   sleep(1);
 }

@@ -214,16 +214,25 @@ Execução local (exemplos)
 
 ```bash
 # executar o script de auth (cada cenário tem VUs separados configuráveis via env)
-BASE_URL=http://localhost:3000 VUS_LOGIN=10 VUS_CAD=5 DURATION=30s k6 run tests/perf/k6/auth.k6.js
+K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm BASE_URL=http://localhost:3000 VUS_LOGIN=10 VUS_CAD=5 DURATION=30s k6 run tests/perf/k6/auth.k6.js
 
 # executar o script de serviços com VUs por cenário
-BASE_URL=http://localhost:3000 VUS_LIST=10 VUS_CREATE=3 VUS_GET=5 VUS_UPDATE=2 VUS_DELETE=1 DURATION=30s k6 run tests/perf/k6/servicos.k6.js
+K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm BASE_URL=http://localhost:3000 VUS_LIST=10 VUS_CREATE=3 VUS_GET=5 VUS_UPDATE=2 VUS_DELETE=1 DURATION=30s k6 run tests/perf/k6/servicos.k6.js
 
-# executar todos sequencialmente (exemplo simples)
-BASE_URL=http://localhost:3000 DURATION=20s k6 run tests/perf/k6/auth.k6.js && \
-	k6 run tests/perf/k6/servicos.k6.js && \
-	k6 run tests/perf/k6/horarios.k6.js && \
-	k6 run tests/perf/k6/compromissos.k6.js
+# executar todos de uma vez e gerar 4 relatórios HTML (auth.html, servicos.html, horarios.html, compromissos.html)
+npm run perf:all
+
+# Personalizar BASE_URL/DURATION antes de rodar (Git Bash/Linux/macOS):
+BASE_URL=http://localhost:3001 DURATION=45s npm run perf:all
+
+# Personalizar BASE_URL/DURATION no PowerShell (Windows):
+$env:BASE_URL="http://localhost:3001"; $env:DURATION="45s"; npm run perf:all
+
+# Usar um único nome de arquivo para todos os relatórios com perf:all (será sobrescrito a cada script)
+K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm npm run perf:all
+
+# PowerShell:
+$env:K6_WEB_DASHBOARD="true"; $env:K6_WEB_DASHBOARD_EXPORT="html-report.htm"; npm run perf:all
 ```
 
 Variáveis de ambiente úteis
@@ -236,6 +245,7 @@ Variáveis de ambiente úteis
 
 Notas
 - Os scripts usam por padrão os usuários seededs do DB em memória (por ex.: `joana@cliente.com` e `cabeleireiro@salon.com`, senha `senha123`). Ajuste as variáveis de ambiente para apontar para outros usuários se necessário.
-- Alguns cenários toleram respostas 401/404/400 como esperadas (ex.: concorrência, autorização). Os checks do k6 indicam falhas reais quando apropriado — se preferir, podemos tornar os checks mais estritos.
+- Os checks dos scripts foram ajustados para validar o caminho feliz (201/200), ideal para medir throughput em rotas saudáveis.
+- Para salvar o HTML do dashboard automaticamente, adicione `K6_WEB_DASHBOARD_EXPORT=report.html` às execuções.
 - Para gerar relatórios mais detalhados (JSON/CSV) ou integrar ao Grafana, rode k6 com output apropriado e exporte os resultados.
 

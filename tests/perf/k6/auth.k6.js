@@ -37,7 +37,8 @@ export function cadastrar() {
     papel: Math.random() > 0.5 ? 'cliente' : 'cabeleireiro',
   });
   const res = http.post(`${BASE_URL}/auth/cadastrar`, payload, { headers: { 'Content-Type': 'application/json' } });
-  check(res, { 'cadastrar 201 or 400': (r) => r.status === 201 || r.status === 400 });
+  // cenário feliz: deve retornar apenas 201
+  check(res, { 'cadastrar 201': (r) => r.status === 201 });
   sleep(1);
 }
 
