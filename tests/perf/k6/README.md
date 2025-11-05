@@ -40,7 +40,7 @@ BASE_URL=http://localhost:3001 DURATION=45s npm run perf:all
 $env:BASE_URL = "http://localhost:3001"; $env:DURATION = "45s"; npm run perf:all
 ```
 
-- Usar um único nome de arquivo para todos os relatórios via perf:all (será sobrescrito a cada script):
+- Usar um único nome de arquivo base para todos os relatórios via perf:all:
   - Git Bash/Linux/macOS:
 ```bash
 K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm npm run perf:all
@@ -49,7 +49,9 @@ K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm npm run perf:all
 ```powershell
 $env:K6_WEB_DASHBOARD = "true"; $env:K6_WEB_DASHBOARD_EXPORT = "html-report.htm"; npm run perf:all
 ```
-  Observação: usando o mesmo nome, o arquivo será reescrito quatro vezes (um por script). Para manter um arquivo por script, não defina K6_WEB_DASHBOARD_EXPORT ao usar perf:all (o runner usa nomes distintos por padrão).
+  O runner adiciona automaticamente o sufixo do endpoint a cada arquivo, gerando:
+  html-report-auth.htm, html-report-servicos.htm, html-report-horarios.htm, html-report-compromissos.htm.
+  Para manter um arquivo por script com nomes distintos próprios, simplesmente não defina K6_WEB_DASHBOARD_EXPORT (o runner usa nomes por padrão).
 
 - Auth:
 ```bash

@@ -228,11 +228,13 @@ BASE_URL=http://localhost:3001 DURATION=45s npm run perf:all
 # Personalizar BASE_URL/DURATION no PowerShell (Windows):
 $env:BASE_URL="http://localhost:3001"; $env:DURATION="45s"; npm run perf:all
 
-# Usar um único nome de arquivo para todos os relatórios com perf:all (será sobrescrito a cada script)
+# Usar um único nome de arquivo base para todos os relatórios com perf:all
+# O runner adiciona automaticamente o sufixo do endpoint (-auth, -servicos, -horarios, -compromissos)
 K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm npm run perf:all
 
 # PowerShell:
 $env:K6_WEB_DASHBOARD="true"; $env:K6_WEB_DASHBOARD_EXPORT="html-report.htm"; npm run perf:all
+# Relatórios gerados: html-report-auth.htm, html-report-servicos.htm, html-report-horarios.htm, html-report-compromissos.htm
 ```
 
 Variáveis de ambiente úteis

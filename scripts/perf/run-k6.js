@@ -67,6 +67,16 @@ function resolveExport(outName) {
   return path.join(REPORT_DIR, outName);
 }
 
+function decorateExportName(baseName, key) {
+  // If user provided a base name (e.g., html-report.htm), append -<key> before extension
+  // If no extension, default to .html
+  if (!baseName) return `${key}.html`;
+  const ext = path.extname(baseName);
+  const name = path.basename(baseName, ext);
+  const finalExt = ext || ".html";
+  return `${name}-${key}${finalExt}`;
+}
+
 function checkK6Available() {
   try {
     const res = spawnSync("k6", ["version"], { encoding: "utf8" });
@@ -82,8 +92,9 @@ function checkK6Available() {
   }
 }
 
-function runOne({ file, export: defaultOut }) {
-  const exportFile = resolveExport(DASHBOARD_EXPORT || defaultOut);
+function runOne({ key, file, export: defaultOut }) {
+  const chosen = DASHBOARD_EXPORT ? decorateExportName(DASHBOARD_EXPORT, key) : defaultOut;
+  const exportFile = resolveExport(chosen);
   console.log(`\n==> Running ${file} (export: ${exportFile})`);
   const env = {
     ...process.env,
@@ -115,7 +126,7 @@ function main() {
       console.error(`Script failed: ${r.file} (exit ${code})`);
       if (FAIL_FAST) break;
     } else {
-      const outName = DASHBOARD_EXPORT || r.export;
+      const outName = DASHBOARD_EXPORT ? decorateExportName(DASHBOARD_EXPORT, r.key) : r.export;
       saved.push(resolveExport(outName));
     }
   }
