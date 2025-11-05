@@ -7,6 +7,8 @@
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "jest --runInBand",
+    "test:bugs": "jest --runInBand tests/integration/bugs/bugs.spec.js",
+    "test:bugs:loose": "BUGS_LOOSE=1 jest --runInBand tests/integration/bugs/bugs.spec.js",
     "perf:k6": "k6 run tests/perf/k6/default.k6.js"
   },
   "keywords": [],
