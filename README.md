@@ -190,13 +190,25 @@ Modelos principais (resumo):
 
 Integração (automatizados):
 
-- Execute a suíte completa de testes (Jest + Supertest):
+- Os testes de integração estão em `tests/integration/*` e cobrem autenticação, serviços, agendamento, autorização e casos de erro.
+ - Os testes de integração (Jest) estão em `tests/integration/*` e cobrem autenticação, serviços, agendamento, autorização e casos de erro.
+
+Relatórios e execução de integração (Mocha + Chai + Mochawesome):
+
+Adicionamos scripts para executar as suítes de integração (pasta `tests/integration/`) e, opcionalmente, gerar um relatório HTML.
 
 ```bash
-npm test
+# Executa as suítes de integração (saída no terminal)
+npm run test:integration
+
+# Executa e gera relatório HTML em tests/reports/mocha/integration.html
+npm run test:integration:web
 ```
 
-- Os testes de integração estão em `tests/integration/*` e cobrem autenticação, serviços, agendamento, autorização e casos de erro.
+Notas:
+- Os testes de integração (Mocha) ficam em `tests/integration/**/*.js` (inclui subpastas como `bugs/`).
+- O relatório HTML é salvo por padrão em `tests/reports/mocha/integration.html` (via Mochawesome).
+- Se você ainda tiver arquivos legados em `tests/integration/mocha/**`, eles não são executados por esses scripts (evita duplicidade).
 
 Performance (teste de carga) — k6
 
@@ -220,6 +232,7 @@ K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm BASE_URL=http://lo
 K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm BASE_URL=http://localhost:3000 VUS_LIST=10 VUS_CREATE=3 VUS_GET=5 VUS_UPDATE=2 VUS_DELETE=1 DURATION=30s k6 run tests/perf/k6/servicos.k6.js
 
 # executar todos de uma vez e gerar 4 relatórios HTML (auth.html, servicos.html, horarios.html, compromissos.html)
+# por padrão, os arquivos são salvos em tests/reports/perf
 npm run perf:all
 
 # Personalizar BASE_URL/DURATION antes de rodar (Git Bash/Linux/macOS):
@@ -230,11 +243,13 @@ $env:BASE_URL="http://localhost:3001"; $env:DURATION="45s"; npm run perf:all
 
 # Usar um único nome de arquivo base para todos os relatórios com perf:all
 # O runner adiciona automaticamente o sufixo do endpoint (-auth, -servicos, -horarios, -compromissos)
+# Os arquivos serão salvos em tests/reports/perf por padrão (ou no diretório definido por K6_REPORT_DIR)
 K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm npm run perf:all
 
 # PowerShell:
 $env:K6_WEB_DASHBOARD="true"; $env:K6_WEB_DASHBOARD_EXPORT="html-report.htm"; npm run perf:all
 # Relatórios gerados: html-report-auth.htm, html-report-servicos.htm, html-report-horarios.htm, html-report-compromissos.htm
+# Caminho padrão: tests/reports/perf (sobreponha com K6_REPORT_DIR se desejar)
 ```
 
 Variáveis de ambiente úteis

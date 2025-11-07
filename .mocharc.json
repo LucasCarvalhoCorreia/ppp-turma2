@@ -1,0 +1,10 @@
+{
+  "reporter": "mochawesome",
+  "reporter-option": [
+    "reportDir=tests/reports/mocha",
+    "reportFilename=integration",
+    "overwrite=true",
+    "html=true",
+    "json=false"
+  ]
+}

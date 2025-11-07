@@ -32,7 +32,7 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 const DURATION = process.env.DURATION || "20s";
 const DASHBOARD = (process.env.K6_WEB_DASHBOARD ?? "true").toString();
 const DASHBOARD_EXPORT = process.env.K6_WEB_DASHBOARD_EXPORT || null; // single name for all
-const REPORT_DIR = process.env.K6_REPORT_DIR || ""; // if provided, save files inside
+const REPORT_DIR = process.env.K6_REPORT_DIR || "tests/reports/perf"; // default output dir for perf reports
 const FAIL_FAST = /^1|true$/i.test(String(process.env.FAIL_FAST || ""));
 
 const ALL_RUNS = [

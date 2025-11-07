@@ -25,7 +25,7 @@ K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.htm k6 run tests/perf/
 
 ## Como rodar (exemplos)
 
-- Tudo de uma vez (gera 4 relatórios HTML: auth.html, servicos.html, horarios.html, compromissos.html):
+- Tudo de uma vez (gera 4 relatórios HTML: auth.html, servicos.html, horarios.html, compromissos.html) — salvos por padrão em `tests/reports/perf`:
 ```bash
 npm run perf:all
 ```
@@ -51,6 +51,7 @@ $env:K6_WEB_DASHBOARD = "true"; $env:K6_WEB_DASHBOARD_EXPORT = "html-report.htm"
 ```
   O runner adiciona automaticamente o sufixo do endpoint a cada arquivo, gerando:
   html-report-auth.htm, html-report-servicos.htm, html-report-horarios.htm, html-report-compromissos.htm.
+  Os arquivos serão salvos por padrão em `tests/reports/perf`. Para alterar o diretório, defina `K6_REPORT_DIR`.
   Para manter um arquivo por script com nomes distintos próprios, simplesmente não defina K6_WEB_DASHBOARD_EXPORT (o runner usa nomes por padrão).
 
 - Auth:
@@ -94,3 +95,4 @@ Para aumentar a previsibilidade:
 - Para testes mais longos, ajuste `DURATION` (ex.: `DURATION=2m`).
 - Para paralelismo, ajuste `VUS_*` conforme o cenário.
 - Para salvar o relatório HTML do dashboard automaticamente, use `K6_WEB_DASHBOARD_EXPORT=arquivo.html`.
+- Diretório padrão de relatórios (runner): `tests/reports/perf`. Para mudar, use `K6_REPORT_DIR=/caminho/para/relatorios`.

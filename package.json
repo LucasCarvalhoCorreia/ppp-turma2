@@ -10,7 +10,9 @@
     "test:bugs": "jest --runInBand tests/integration/bugs/bugs.spec.js",
     "test:bugs:loose": "BUGS_LOOSE=1 jest --runInBand tests/integration/bugs/bugs.spec.js",
     "perf:k6": "k6 run tests/perf/k6/default.k6.js",
-    "perf:all": "node scripts/perf/run-k6.js"
+    "perf:all": "node scripts/perf/run-k6.js",
+    "test:integration": "node ./node_modules/mocha/bin/mocha.js \"tests/integration/*.js\" \"tests/integration/bugs/*.js\" --timeout 60000",
+    "test:integration:web": "node ./node_modules/mocha/bin/mocha.js \"tests/integration/*.js\" \"tests/integration/bugs/*.js\" --timeout 60000"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +29,9 @@
   "devDependencies": {
     "jest": "^29.0.0",
     "autocannon": "^7.10.0",
-    "supertest": "^7.1.4"
+    "supertest": "^7.1.4",
+    "mocha": "^10.7.0",
+    "chai": "^4.4.1",
+    "mochawesome": "^7.1.3"
   }
 }
